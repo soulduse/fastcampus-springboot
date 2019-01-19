@@ -212,7 +212,93 @@ class HelloServlet: HttpServlet() {
 ### JRebel
 - 핫 리로딩
 
+# [3 주차]
 
+- @RequestParam
+    - 파라미터를 각각 하나씩 받을 수 있다.
+    - 하지만 여러데이터를 받을 경우 해당 어노테이션이 남발됨.
+    - 따라서 나온게 @ModelAttribute
+- @ModelAttribute
+    - 모델 데이터를 한번에 받을 수 있음.
+    - 특정 어노테이션을 붙혀서 사용자가 원하는 메세지를 보내지 않을시, 오류 메세지를 노출 할 수 있음.
+- 문자열을 객체로 바꿔준다. (MessageConverter)
+
+### Controller가 리턴하는것
+- View name
+- Component name
+- Data 객체
+
+### ObjectMapper
+- 객체 > Json
+- Json > 객체
+
+### Bean들이 잘 생성되었나 확인해보려면
+
+```java
+@Autowired
+HttpMessageConverters httpMessageConverters;
     
- 
+@Override
+public void run(String... args) throws Exception {
+    httpMessageConverters.getConverters().forEach(
+            System.out::println
+    );
+}
+```
 
+### DBMS
+- MySQL은 DBMS이다.
+    1. DB 생성
+    2. 계정생성
+    3. 권한부여
+- 사용시
+    - IP PORT
+    - Password
+    - 사용할 DB
+    - SQL
+        - DDL
+        - DML
+        
+- SQL를 모르면 JPA도 잘 할줄 모른다. SQL은 기본이 되어야 한다.
+- DB 연결을 위해서 HikariCP라는 것이 사용된다.
+
+- 트랜젝션 : 몽땅 성공하던지, 몽땅 실패하던지
+- 선언적 트랜젝션 : 선언만 해놓으면 자동으로 트랜젝션 처리를 해줌. (xml, annotation)
+- select만 여러번 하면 commit, rollback이 필요없다. select하는 상태에서 commit을 하게 되면 오버헤드가 발생함.
+    - 난 이안에서 select만 실행한다, 난 이 sql에서 insert, update가 이루어진다를 구분해줘야 함.
+    
+### Java에서는 어떻게 DB를 사용할까?
+- java.sql
+- 인터페이스
+    - Connection(DB 연결), PreparedStatement(SQL 실행), ResultSet(SQL 결과)
+- JDBC 공부는 위의 인터페이스 사용법만 알아도 된다.
+
+
+DB 연결 : `Connection conn = DriverManager.getConnection(dbUrl, id, pw)`
+
+- 데이터베이스 연결에 시간이 많이 걸렸다. 그래서 이걸 어떻게 해결할까 고민하다가 `Connection Pool`의 개념이 탄생
+- `Connection Pool` : 미리 데이터베이스 연결을 해두겠다. 미리 커넥션을 여러개 연결해둠.
+- Connection close 하면 사용자가 사용하던 커넥션이 자동으로 반납된다.
+- 동시에 커넥션이 필요한 경우, 모든 커넥션이 사용되면 그 이후 커넥션할 사람은 `대기열`, `병목현상`이 발생.
+- 느린 SQL이 3초걸린다. 하지만 하루에 2번정도밖에 호출되지 않는다. 이와 반대로 어떤 SQL은 0.2초인데 100만번 호출된다면, 이것이 튜닝대상.
+
+### JPA
+- 자바 개발자는 객체지향 프로그래밍을 하는데 SQL??
+- JPA - 구현체 : 하이버네이트
+- Spring 입장?
+    - 저장소가 DBMS만 있는것은 아니더라... (NoSQL도 있더라 ... )
+    - Spring Data 공통. - Spring Data JPA
+- 사용하는 이유?
+    - 생산성 증가
+    - 유지보수
+    - SQL 중심적인 개발 > 객체중심 개발
+    - 표준
+    - 데이터 접근 추상화와 벤더 독립성
+        - DB마다 SQL문법이 다른데, SQL에 따라서 자동으로 맞게 변경해준다.
+- 영속성
+    - 휘발서의 반대. 유지되는 것
+    - EntityManager라는 객체에 부탁을해서 이 인스턴스를 영속성을 부여해달라고 함.
+    - EntityManager에서 객체가 테이블과 관계를 맺고 있다면 자동으로 Table에 Insert를 해준다.
+    - 영속성을 판단하는 기준은 @Entity, @Table을 사용해서 알 수 있도록 하자.
+    - 읽어오는 것도 마찬가지로 EntityManager에게 부탁함.
+    - 영속성이 유지되려면 반드시 id 값이 부여 되어야함.
