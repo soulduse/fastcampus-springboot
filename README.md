@@ -302,3 +302,61 @@ DB 연결 : `Connection conn = DriverManager.getConnection(dbUrl, id, pw)`
     - 영속성을 판단하는 기준은 @Entity, @Table을 사용해서 알 수 있도록 하자.
     - 읽어오는 것도 마찬가지로 EntityManager에게 부탁함.
     - 영속성이 유지되려면 반드시 id 값이 부여 되어야함.
+
+
+## [4 주차]
+
+- JDBC > SQL Mappter (SQL중심 - Spring JDBC, MyBatis)
+         ORM         (객체중심 - JPA(Java표준) - Spring Data JPA)
+         
+- ORM - 테이블과 맵핑하는 객체 (Entity) -> 자동으로 테이블이 생성가능.
+
+1) Entity 클래스를 작성. Id(식별자)를 가져야 한다.
+2) 1:1, 1:*, *:* 연관관계를 고민 - 비지니스 로직에 대한 고민
+3) Repository를 작성 (JPQL, QueryDSL 등을 사용하여 조회를 어떻게 할까?)
+4) Repository를 실행하면서 Test. 자동으로 생성되는 SQL을 잘 확인. 
+
+- 연관관계가 Repository에서 JPQL을 사용할 때 Join조건으로 사용될 수 있다.
+- 연관관계를 통해서 데이터를 읽어올 때 사용한다. (lazy)
+
+```java
+    // @OneToMany(mappedBy = "department")
+    // mappedBy < 반대편 컬럼을 참조하겠다.
+    // JoinColumn을 사용하면 왜래키가 생긴다. 1:N 이라고 하면 N쪽에 왜래키가 생긴다.
+    @OneToMany
+    @JoinColumn(name = "deptno")
+    private Set<Employee> employees;
+```
+
+- JPA에서 복합키를 만드는 방법
+    - 복합키를 만드는 방법은 키가 묶어 클래스를 만든다.
+    - @EmbeddedId, @Embeddedable
+```java
+@Entity
+@Table(name = "project_participation")
+@Getter
+@Setter
+public class ProjectParticipation {
+    @EmbeddedId
+    private ProjectParticipationId projectParticipationId;
+    private String endDate;
+
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
+}
+
+@Data
+@Embeddable
+public class ProjectParticipationId   implements Serializable {
+    private Integer projectno;
+    private Integer empno;
+
+    @Column(name = "start_date", length = 12)
+    private String startDate;
+}
+```
+    
+- 엔티티만 만들었다고 엔티티를 이용할수 없다. Repository를 생성해야함.
+
+
