@@ -360,3 +360,66 @@ public class ProjectParticipationId   implements Serializable {
 - 엔티티만 만들었다고 엔티티를 이용할수 없다. Repository를 생성해야함.
 
 
+## [5 주차]
+- ID, PW를 입력면 Spring Security에 filter로 전달된다. 
+- User가 날라오면 User가 가지고 있는 ID, PW를 담아서 리턴해줌.
+- 스프링 시큐리티 필터가 사용자가 입력한 암호와 객체에 들어가있는 암호가 같으면 암호가 맞다고 판단 후 로그인 처리 해줌.
+- 세션에 해당 로그인 정보가 저장된다.
+- Security User Details, 메모리에 사용자 id는 user, 암호는 자동생성된 UUID ex) 값을 가지고 있다.
+
+### Transaction
+- OSIV
+- EMIIV
+- 서비스에서 꺼낸 객체는 ReadOnly 상태로 가즈아
+- 서비스 안에서만 수정,삭제,읽기 가능하도록 함.
+- JPA와 뗄레야 뗄수 없는 관계
+
+### Security
+- 인증 : 
+- 인가 : A URL 주소는 아무나 접근가능, B URL 주소는 관리자만 접근가능
+- 인가설정(1)
+    - 특정한 경로를 접근 허용
+    - 모든 경로를 접근못하게 함.
+- 인가설정(2)
+    - 특정한 경로를 접근 허용하지 않도록 함.
+    - 모든 경로를 접근하게 함.
+- 인가설정은 위에서부터 아래로 순차적으로 설정값이 적용된다.
+
+### SecurityConfig
+- formLogin() // 사용자가 정의하는 로그인 화면을 만들겠다.
+    - loginProcessingUrl("/users/login/") // FromLoginConfigure<HttpSecurity>
+    - loginPage("/users/login") // 사용자가 입력한 id, password가 전달되는 url경로(핕터가 처리)
+    - failureUrl("/users/login?fail=true") // 로그인에 실패했을시에 처리를 해준다.
+
+### JPA 관계에 관하여
+- @OneToOne : fetch = EAGER
+- @OneToMany : fetch = LAZY
+- @ManyToOne : fetch = EAGER
+- @ManyToMany : fetch = LAZY
+
+- 학습하기 좋은 url : https://github.com/urstory/hr
+
+- 엔티티와 엔티티의 관계에서 기본이 EAGER인 경우 과도한 SQL이 실행될 수 있다.
+- EAGER > LAZY로 변경.
+- 만약 LAZY된 내용을 For문에서 사용한다면, 마찬가지로 SQL이 많이 실행 될 수 있다.
+- 위의 경우에는 fetch join을 활용하여 해결. (1+N 문제)
+- 다른 방안으로 Keyword (@BatchSize(size = 5), @Fetch(FetchMode.SUBSELECT)) 
+    참조 (http://wonwoo.ml/index.php/post/975)
+    
+### 검증
+- 프론트에서도 Validation 체크를 하고, 백앤드에서도 Validation을 체크해야한다.
+- 해커는 충분히 프론트 단에 Validation을 무시하고 데이터를 넘길 수 있기 때문.
+- 그럼 어떻게 백엔드에서 Validation을 체크할까?
+    - (1)값 검증에 실패하면 Exception을 터뜨려 코드가 실행되지 못하게 한다.
+    - (2)값 검증에 실패하면 BindingResult에 실패 데이터를 담아서 다시 프론트로 포워딩한다.
+```kotlin
+@Controller
+class UserController {
+    Users(@Valid userForm: UserForm, bindingResult: BindingResult) {
+        // userForm의 경우에 DTO
+    }
+}
+```
+- (2)번 방법은 좋은 방법은 아닌것 같음. 값을 포워딩하고, 프론트에서 다시 찍어주고 하는 것 자체가 일. 따라서 유지보수도 힘들어진다.
+- (1)번 방법은 검증에 실패하면 그냥 Exception을 터뜨리고 끝. 별도로 처리해줄 내용이 작아서 유지보수가 좋으니 맘이편하다.
+
